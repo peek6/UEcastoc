@@ -19,50 +19,19 @@ import os
 import json
 import pathlib
 import shutil
+from fix_manifest_and_pack_utils import fix_manifest_and_pack_iostore
 
 ##### SET THESE TO POINT TO YOUR MANIFEST FILE AND TO THE DIRECTORY YOU WANT TO PACK ###########
-manifest_file = 'test_manifest.json'
-directory_to_pak = 'z_your_mod_name_P'
+user_manifest_file = 'test_manifest.json'
+user_manifest_dir = '.'
+user_directory_to_pak = 'z_your_mod_name_P'
+uecastoc_executable_path = '.'  # dir with uecastoc main.exe and castoc_x64.dll
 #########################################################################################
 
-with open(manifest_file, 'r') as fp:
-    manifest_dict = json.load(fp)
+def main():
+    fix_manifest_and_pack_iostore(user_directory_to_pak, user_manifest_file, user_manifest_dir, uecastoc_executable_path)
 
-    with open("fixed_"+manifest_file,'w') as fout:
-        print("Fixing the paths in the manifest file so that the packer can find them...")
-        file_idx = 0
-        for file_entry in manifest_dict['Files']:
-            if(not(file_entry['Path']=='dependencies')):
-                filename_to_find = file_entry['Path'][1:]  # get rid of leading /
-                my_file = []
-                for path in pathlib.Path(directory_to_pak).rglob(filename_to_find):
-                    my_file.append(path)
-                if (len(my_file)==0):
-                    print("WARNING:  could not find "+filename_to_find)
-                if(len(my_file)>1):
-                    print("WARNING:  found multiple instances of "+filename_to_find+":")
-                    for path in my_file:
-                        print(path)
-                for path in my_file:
-                    python_path = str(path)
-                    fixed_path ='/' + ('/').join(python_path.split('\\')[1:])
-                    print(fixed_path)
-                    manifest_dict['Files'][file_idx]['Path'] = fixed_path
-            file_idx = file_idx+1
-
-        print("Writing new manifest file "+"fixed_"+manifest_file)
-        json.dump(manifest_dict, fout, indent=2)
+main()
 
 
-print("Packing "+directory_to_pak)
-json_path = pathlib.Path("fixed_"+manifest_file)
-
-
-my_cmd = '.\main.exe pack \"' + str(directory_to_pak)+'\" \"' + str(json_path) + '\" \"packed\\' +directory_to_pak+ '\" None'
-print(my_cmd)
-os.system(my_cmd)
-
-#my_cmd = "main.exe pack " + directory_to_pak + " " + str(json_path.with_suffix('')) + ".json packed\\" +directory_to_pak+ " none"
-#print(my_cmd)
-#os.system(my_cmd)
 

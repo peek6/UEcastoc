@@ -7,3 +7,4 @@ test*
 Runtime/*
 packProgram/Runtime/
 unpacking*/
+*.pyc
